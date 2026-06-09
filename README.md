@@ -198,6 +198,66 @@ ngrok http 8000
 
 The web UI can trigger runs, retry failed runs, save feedback, edit profiles, and upload PDFs for reanalysis. Long operations show an in-page status message; if a request fails, the error is shown in the dashboard.
 
+## Docker Compose
+
+Docker Compose is the simplest way to move the app to another machine. The image contains the Python backend and built frontend; your database, generated Markdown, uploaded PDFs, private profile, and `.env` stay outside the image as mounted files.
+
+Prepare local runtime files:
+
+Bash:
+
+```bash
+cp .env.example .env
+cp config/watch_profiles.yaml config/watch_profiles.local.yaml
+mkdir -p data content/daily content/weekly content/readings
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item config/watch_profiles.yaml config/watch_profiles.local.yaml
+New-Item -ItemType Directory -Force data, content/daily, content/weekly, content/readings
+```
+
+cmd.exe:
+
+```bat
+copy .env.example .env
+copy config\watch_profiles.yaml config\watch_profiles.local.yaml
+mkdir data
+mkdir content\daily
+mkdir content\weekly
+mkdir content\readings
+```
+
+Edit `.env` and `config/watch_profiles.local.yaml`, then start the web app:
+
+```bash
+docker compose up --build web
+```
+
+Open `http://localhost:8000`.
+
+Run the scheduler/worker as well:
+
+```bash
+docker compose --profile worker up --build
+```
+
+Migration to another machine:
+
+1. Clone the repository.
+2. Copy `.env`, `config/watch_profiles.local.yaml`, `data/articles.sqlite`, and the whole `content/` directory from the old machine.
+3. Run `docker compose up --build web`.
+
+For ZIP-based migration, you can also export on the old machine and restore on the new one:
+
+```bash
+uv run daa export-data backups/daa.zip
+docker compose run --rm web daa restore-data /app/backups/daa.zip --replace
+```
+
 ## Full Text And PDF Uploads
 
 The agent tries public evidence first: local PDFs, arXiv PDFs, DOI pages, public PDF links, and public HTML/text pages. It does not bypass paywalls.

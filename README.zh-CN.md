@@ -198,6 +198,66 @@ ngrok http 8000
 
 网页端可以手动触发 daily/weekly、查看运行历史、重试失败任务、给论文反馈、编辑 profile、上传 PDF 后重新分析。长时间操作会在页面显示状态；请求失败会显示错误信息。
 
+## Docker Compose
+
+Docker Compose 是迁移到其他电脑或服务器时最省事的方式。镜像里包含 Python 后端和已构建的前端；数据库、生成的 Markdown、上传的 PDF、私有 profile 和 `.env` 都留在镜像外，通过挂载目录保存。
+
+准备本地运行文件：
+
+Bash:
+
+```bash
+cp .env.example .env
+cp config/watch_profiles.yaml config/watch_profiles.local.yaml
+mkdir -p data content/daily content/weekly content/readings
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item config/watch_profiles.yaml config/watch_profiles.local.yaml
+New-Item -ItemType Directory -Force data, content/daily, content/weekly, content/readings
+```
+
+cmd.exe:
+
+```bat
+copy .env.example .env
+copy config\watch_profiles.yaml config\watch_profiles.local.yaml
+mkdir data
+mkdir content\daily
+mkdir content\weekly
+mkdir content\readings
+```
+
+编辑 `.env` 和 `config/watch_profiles.local.yaml`，然后启动网页：
+
+```bash
+docker compose up --build web
+```
+
+打开 `http://localhost:8000`。
+
+同时启动 scheduler/worker：
+
+```bash
+docker compose --profile worker up --build
+```
+
+迁移到另一台电脑：
+
+1. clone 仓库。
+2. 从旧电脑复制 `.env`、`config/watch_profiles.local.yaml`、`data/articles.sqlite` 和整个 `content/` 目录。
+3. 运行 `docker compose up --build web`。
+
+也可以用 ZIP 方式迁移：旧电脑导出，新电脑恢复。
+
+```bash
+uv run daa export-data backups/daa.zip
+docker compose run --rm web daa restore-data /app/backups/daa.zip --replace
+```
+
 ## 正文获取和 PDF 上传
 
 agent 会优先尝试合法可访问的证据来源：本地 PDF、arXiv PDF、DOI 页面、公开 PDF 链接、公开 HTML/text 页面。它不会绕过出版社付费墙。

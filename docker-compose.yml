@@ -1,0 +1,58 @@
+services:
+  web:
+    build: .
+    image: daily-article-agent:local
+    environment:
+      DAA_CONFIG_PATH: /app/config/watch_profiles.local.yaml
+      DAA_DB_PATH: /app/data/articles.sqlite
+      DAA_CONTENT_DIR: /app/content
+      DAA_TIMEZONE: ${DAA_TIMEZONE:-UTC}
+      DAA_LLM_ENABLED: ${DAA_LLM_ENABLED:-false}
+      DAA_LLM_API_BASE: ${DAA_LLM_API_BASE:-}
+      DAA_LLM_API_KEY: ${DAA_LLM_API_KEY:-}
+      DAA_LLM_MODEL: ${DAA_LLM_MODEL:-}
+      DAA_LLM_CHAT_COMPLETIONS_URL: ${DAA_LLM_CHAT_COMPLETIONS_URL:-}
+      DAA_LOCAL_PDF_DIR: ${DAA_LOCAL_PDF_DIR:-}
+      DAA_ALERT_WEBHOOK_URL: ${DAA_ALERT_WEBHOOK_URL:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config/watch_profiles.local.yaml:/app/config/watch_profiles.local.yaml:rw
+      - ./data:/app/data
+      - ./content:/app/content
+      - ./backups:/app/backups
+    restart: unless-stopped
+
+  worker:
+    image: daily-article-agent:local
+    profiles:
+      - worker
+    environment:
+      DAA_CONFIG_PATH: /app/config/watch_profiles.local.yaml
+      DAA_DB_PATH: /app/data/articles.sqlite
+      DAA_CONTENT_DIR: /app/content
+      DAA_TIMEZONE: ${DAA_TIMEZONE:-UTC}
+      DAA_LLM_ENABLED: ${DAA_LLM_ENABLED:-false}
+      DAA_LLM_API_BASE: ${DAA_LLM_API_BASE:-}
+      DAA_LLM_API_KEY: ${DAA_LLM_API_KEY:-}
+      DAA_LLM_MODEL: ${DAA_LLM_MODEL:-}
+      DAA_LLM_CHAT_COMPLETIONS_URL: ${DAA_LLM_CHAT_COMPLETIONS_URL:-}
+      DAA_LOCAL_PDF_DIR: ${DAA_LOCAL_PDF_DIR:-}
+      DAA_ALERT_WEBHOOK_URL: ${DAA_ALERT_WEBHOOK_URL:-}
+    volumes:
+      - ./config/watch_profiles.local.yaml:/app/config/watch_profiles.local.yaml:rw
+      - ./data:/app/data
+      - ./content:/app/content
+      - ./backups:/app/backups
+    command:
+      - daa
+      - worker
+      - all
+      - --daily-time
+      - ${DAA_DAILY_TIME:-23:30}
+      - --weekly-time
+      - ${DAA_WEEKLY_TIME:-23:45}
+      - --use-llm
+    restart: unless-stopped
+    depends_on:
+      - web
