@@ -1,0 +1,31 @@
+profiles:
+  - id: ai_systems_example
+    name: AI Systems Example
+    description: Public example profile for machine learning systems, evaluation, retrieval, agents, and data-centric AI.
+    language: en
+    max_items: 8
+    keywords:
+      - machine learning systems
+      - retrieval augmented generation
+      - software agent
+      - evaluation benchmark
+      - data-centric AI
+      - efficient inference
+    exclude_keywords:
+      - clinical trial
+      - medical imaging
+      - finance
+    sources:
+      - name: arxiv-cs
+        kind: arxiv
+        query: 'cat:cs.AI OR cat:cs.LG OR cat:cs.SE OR cat:cs.CL'
+        limit: 30
+      - name: acm-computing-surveys
+        kind: rss
+        url: https://dl.acm.org/action/showFeed?type=etoc&feed=rss&jc=csur
+        limit: 20
+      - name: ieee-software
+        kind: crossref
+        issn: 0740-7459
+        query: machine learning software systems evaluation
+        limit: 20
